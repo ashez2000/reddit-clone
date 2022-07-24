@@ -1,21 +1,29 @@
-import { useState, Fragment } from 'react'
-
+import { useState, Fragment, FormEvent } from 'react'
 import { useSetRecoilState } from 'recoil'
 import Button from 'react-bootstrap/Button'
 import Form from 'react-bootstrap/Form'
+import { useSignInWithEmailAndPassword } from 'react-firebase-hooks/auth'
 
+import { auth } from '../../lib/firebase/app'
 import OAuthButton from './OAuthButton'
 import { authModelAtom } from '../../atoms/authModelAtom'
 
 const LoginForm = () => {
   const setAuthModelState = useSetRecoilState(authModelAtom)
+  const [signInWithEmailAndPassword, user, loading, error] =
+    useSignInWithEmailAndPassword(auth)
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
 
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    signInWithEmailAndPassword(email, password)
+  }
+
   return (
     <Fragment>
-      <Form className="mb-3">
+      <Form className="mb-3" onSubmit={handleSubmit}>
         <Form.Group className="mb-3" controlId="formBasicEmail">
           <Form.Label>Email address</Form.Label>
           <Form.Control
@@ -35,10 +43,14 @@ const LoginForm = () => {
             onChange={(e) => setPassword(e.target.value)}
           />
         </Form.Group>
-        <div className="d-grid">
-          <Button variant="primary" type="submit">
-            Login
+        <div className="d-grid mb-3">
+          <Button variant="primary" type="submit" disabled={loading}>
+            {loading ? 'Signing in...' : 'Sign in'}
           </Button>
+        </div>
+
+        <div className="mb-3">
+          {error && <p className="text-center text-danger">{error.message}</p>}
         </div>
       </Form>
 
